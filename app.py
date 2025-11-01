@@ -82,7 +82,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Crée une barre de navigation
-tabs = ["⚙️ Compte" , "📋 Suivi des dépenses", "📈 Graphiques", "💸 Prêts", "💰 Placements"]
+tabs = ["⚙️ Compte" , "Budget total disponible" , "💼 Revenus" , "📋 Suivi des dépenses", "💰 Placements"]
 selected_tab = st.radio("Navigation", tabs, horizontal=True, label_visibility="collapsed", key="menu")
 
 st.markdown(f"<div class='nav'> <b>{selected_tab}</b></div>", unsafe_allow_html=True)
@@ -157,7 +157,7 @@ elif selected_tab == "📋 Suivi des dépenses":
     st.metric("💵 Total des dépenses", f"{total:,.2f} €".replace(",", " "))
 
 # ==================== GRAPHIQUE ====================
-elif selected_tab == "📈 Graphique mensuel":
+
     st.title("📈 Graphique mensuel des dépenses")
     if not df.empty:
         df["date"] = pd.to_datetime(df["date"])
@@ -166,12 +166,6 @@ elif selected_tab == "📈 Graphique mensuel":
         st.bar_chart(monthly)
     else:
         st.info("Aucune donnée pour le moment.")
-
-# ==================== PRÊTS ====================
-elif selected_tab == "💸 Prêts":
-    st.title("💸 Gestion des prêts")
-    st.write("💡 Ici, vous pourrez ajouter ou suivre vos crédits (bancaires, personnels, etc.)")
-    st.warning("Section en construction 🚧")
 
 # ==================== PLACEMENTS ====================
 elif selected_tab == "💰 Placements":
@@ -185,3 +179,56 @@ elif selected_tab == "💰 Placements":
         res = compute_interest(principal, annual_rate, period)
         st.success(f"Intérêt mensuel estimé : {res['monthly']:.2f} €")
         st.info(f"Intérêt annuel estimé : {res['yearly']:.2f} €")
+
+# ==================== REVENUS ====================
+elif selected_tab == "💼 Revenus":
+    st.title("💰 Gestion des revenus")
+
+    # Initialisation si vide
+    if "revenus" not in st.session_state:
+        st.session_state["revenus"] = pd.DataFrame(columns=["date", "type", "amount", "desc"])
+
+    revenus_df = st.session_state["revenus"]
+
+    # --- Formulaire d'ajout ---
+    st.subheader("➕ Ajouter un revenu")
+    col1, col2 = st.columns(2)
+    with col1:
+        date_rev = st.date_input("Date", value=date.today())
+        type_rev = st.selectbox("Type de revenu", ["Salaire", "Prime", "Cadeau", "Vente", "Autre"])
+    with col2:
+        montant_rev = st.number_input("Montant (€)", min_value=0.0, step=10.0)
+        desc_rev = st.text_input("Description (facultatif)")
+
+    if st.button("Ajouter le revenu"):
+        if montant_rev > 0:
+            new_rev = pd.DataFrame([{
+                "date": date_rev.isoformat(),
+                "type": type_rev,
+                "amount": montant_rev,
+                "desc": desc_rev
+            }])
+            st.session_state["revenus"] = pd.concat([revenus_df, new_rev], ignore_index=True)
+            st.success("✅ Revenu ajouté avec succès !")
+        else:
+            st.warning("⚠️ Entrez un montant supérieur à 0 €")
+
+    # --- Historique ---
+    st.markdown("---")
+    st.subheader("📋 Historique des revenus")
+
+    if st.session_state["revenus"].empty:
+        st.info("Aucun revenu enregistré pour le moment.")
+    else:
+        df = st.session_state["revenus"]
+        st.dataframe(df, use_container_width=True)
+        total_rev = df["amount"].sum()
+        st.metric("💵 Total des revenus enregistrés", f"{total_rev:,.2f} €".replace(",", " "))
+
+        # --- Graphiques ---
+        st.subheader("📊 Visualisation")
+        df["date"] = pd.to_datetime(df["date"])
+        by_type = df.groupby("type")["amount"].sum()
+        st.bar_chart(by_type, use_container_width=True)
+        by_date = df.groupby("date")["amount"].sum()
+        st.line_chart(by_date, use_container_width=True)
