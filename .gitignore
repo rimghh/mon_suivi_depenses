@@ -1,3 +1,3 @@
 # Ne pas versionner les données locales
 *.csv
-!README.csv  # (si un jour tu veux mettre un mini échantillon pédagogique)
+!README.csv  
