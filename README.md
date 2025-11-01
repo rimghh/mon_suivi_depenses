@@ -11,7 +11,7 @@ Elle offre la possibilité de suivre les transactions, visualiser les statistiqu
 ##  Fonctionnalités principales
 
 - Gestion **multi-utilisateur** avec connexion et inscription.
-- - 🧾 **Suivi des dépenses** : ajout, modification et suppression de dépenses.  
+- **Suivi des dépenses** : ajout, modification et suppression de dépenses.  
 - **Gestion des revenus** : enregistrement et visualisation des sources de revenus.  
 - **Analyse budgétaire** : affichage de graphiques (par catégorie, par mois, etc.).  
 - **Budget personnalisé** : suivi de l’écart entre le budget prévu et réel.  
